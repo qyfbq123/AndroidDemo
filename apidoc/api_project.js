@@ -1,0 +1,1 @@
+define({  "name": "androiddemo",  "version": "1.0.0",  "description": "A demo for android lessons.",  "sampleUrl": false,  "apidoc": "0.2.0",  "generator": {    "name": "apidoc",    "time": "2016-08-23T04:26:49.533Z",    "url": "http://apidocjs.com",    "version": "0.16.1"  }});
