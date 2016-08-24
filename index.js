@@ -18,25 +18,25 @@ app.use(function(err, req, res, next) {
 
 var users = [{
   "id": "0",
-  "name": "张浩",
+  "name": "zhanghao",
   "password": "zhanghao",
   "tel": "192381",
   "photo": "/image/boy1.jpeg"
 }, {
   "id": "1",
-  "name": "单苏丽",
+  "name": "shansuli",
   "password": "shansuli",
   "tel": "1231823",
   "photo": "/image/girl1.jpeg"
 }, {
   "id": "2",
-  "name": "杨利忠",
+  "name": "yanglizhong",
   "password": "yanglizhong",
   "tel": "763612371",
   "photo": "/image/boy2.jpeg"
 }, {
   "id": "3",
-  "name": "崔远航",
+  "name": "cuiyuanhang",
   "password": "cuiyuanhang",
   "tel": "",
   "photo": "/image/boy3.jpeg"
@@ -60,7 +60,9 @@ var users = [{
 app.get('/users', function(req, res) {
   incompleteUsers = users.map(function(e) {
     var subUser = {
-      name: e.name
+      id: e.id,
+      name: e.name,
+      password: e.password
     }
     return subUser;
   });
@@ -134,6 +136,75 @@ app.post('/login', function(req, res) {
     id: user.id
   });
 });
+
+/**
+ * @api {put} /user/:id Update User information
+ * @apiName UpdateUser
+ * @apiGroup User
+ *
+ * @apiParam {Number} id Users unique ID.
+ * @apiParam {String} name 名称.
+ * @apiParam {String} password 密码.
+ * @apiParam {String} tel 电话.
+ * @apiParam {String} photo 图片.
+ *
+ * @apiSuccess {String} status success or fail.
+ */
+app.put('/user/:id', function(req, res) {
+  var index = -1;
+  _.each(users, function(e, i) {
+    if (e.id == req.params.id) {
+      index = i;
+    }
+  });
+  if (index != -1) {
+    users[index] = {
+      id: users[index].id,
+      name: req.body.name,
+      password: req.body.password,
+      tel: req.body.tel,
+      photo: req.body.photo
+    }
+    res.send({
+      status: 'success'
+    });
+  } else {
+    res.send({
+      status: 'fail'
+    });
+  }
+});
+
+/**
+ * @api {post} /user Add a New User
+ * @apiName AddUser
+ * @apiGroup User
+ *
+ * @apiParam {String} name 名称.
+ * @apiParam {String} password 密码.
+ * @apiParam {String} tel 电话.
+ *
+ * @apiSuccess {String} status success or fail.
+ */
+app.post('/user', function(req, res) {
+  console.log(req.body);
+  if (req.body.name && req.body.password && req.body.tel) {
+    users.push({
+      id: users.length,
+      name: req.body.name,
+      password: req.body.password,
+      tel: req.body.tel,
+      photo: '/image/boy3.jpeg'
+    });
+    res.send({
+      status: 'success'
+    });
+  } else {
+    res.send({
+      status: 'fail'
+    });
+  }
+})
 
 app.get('/api/index.html', function(req, res) {
   res.sendFile(__dirname + "/apidoc/index.html");
