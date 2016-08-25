@@ -1,12 +1,15 @@
 var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
 var _ = require("underscore");
+var bb = require('express-busboy');
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+var app = express();
+//Conten-Type  multipart/form application/json
+//JSON.parse
+bb.extend(app, {
+  upload: true,
+  path: __dirname + '/static/images',
+  allowedPath: /.*/
+});
 
 app.use("/api", express.static('apidoc'));
 app.use("/image", express.static('static/images'));
@@ -62,7 +65,9 @@ app.get('/users', function(req, res) {
     var subUser = {
       id: e.id,
       name: e.name,
-      password: e.password
+      password: e.password,
+      tel: e.tel,
+      photo: e.photo
     }
     return subUser;
   });
@@ -95,8 +100,22 @@ app.get('/user/:id', function(req, res) {
  * @apiSuccess {String} status success or fail.
  */
 app.delete('/user/:id', function(req, res) {
-  users.splice(req.params.id, 1);
-  res.send("success");
+  var index = -1;
+  _.each(users, function(e, i) {
+    if (e.id == req.params.id) {
+      index = i;
+    }
+  });
+  if (index != -1) {
+    users.splice(index, 1);
+    res.send({
+      status: "success"
+    });
+  } else {
+    res.send({
+      status: "fail"
+    });
+  }
 });
 
 /**
@@ -112,6 +131,28 @@ app.post('/test', function(req, res) {
   res.send({
     status: "ok"
   });
+});
+
+/**
+ * @api {post} /test/photo test post photo file
+ * @apiName Test Post Photo
+ * @apiGroup Test
+ *
+ * @apiParam {File} testFile photo file
+ * 
+ * @apiSuccess {String} status just a return str.
+ */
+app.post('/test/photo', function(req, res) {
+  if (req.files && req.files.testFile) {
+    res.send({
+      status: "success"
+    });
+  } else {
+    res.send({
+      status: "fail"
+    });
+  }
+
 });
 
 /**
@@ -183,19 +224,26 @@ app.put('/user/:id', function(req, res) {
  * @apiParam {String} name 名称.
  * @apiParam {String} password 密码.
  * @apiParam {String} tel 电话.
+ * @apiParam {File} photo 图像.
  *
  * @apiSuccess {String} status success or fail.
  */
 app.post('/user', function(req, res) {
-  console.log(req.body);
+
+  var photo = req.files ? req.files.photo : null;
+  var relativePath = '';
+  if (photo) {
+    relativePath = photo.file.substring(photo.file.indexOf('static/images') + 'static/images'.length)
+  }
   if (req.body.name && req.body.password && req.body.tel) {
-    users.push({
+    var user = {
       id: users.length,
       name: req.body.name,
       password: req.body.password,
       tel: req.body.tel,
-      photo: '/image/boy3.jpeg'
-    });
+      photo: relativePath ? ('/image' + relativePath) : ''
+    };
+    users.push(user);
     res.send({
       status: 'success'
     });
@@ -204,7 +252,7 @@ app.post('/user', function(req, res) {
       status: 'fail'
     });
   }
-})
+});
 
 app.get('/api/index.html', function(req, res) {
   res.sendFile(__dirname + "/apidoc/index.html");
